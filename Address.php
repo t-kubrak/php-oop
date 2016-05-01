@@ -4,6 +4,16 @@
  */
 class Address
 {
+    const ADDRESS_TYPE_RESIDENCE = 1;
+    const ADDRESS_TYPE_BUSINESS = 2;
+    const ADDRESS_TYPE_PARK = 3;
+
+    static public $valid_address_types = array(
+        Address::ADDRESS_TYPE_RESIDENCE => "Residence",
+        Address::ADDRESS_TYPE_BUSINESS => "Business",
+        Address::ADDRESS_TYPE_PARK => "Park"
+    );
+
     // Street address
     public $street_address_1;
     public $street_address_2;
@@ -20,6 +30,12 @@ class Address
     // Name of the country.
     public $country_name;
 
+    // Primary key of an Address
+    protected $_address_id;
+
+    // Address type id
+    protected $address_type_id;
+
     protected $_time_created;
     protected $_time_updated;
 
@@ -33,7 +49,7 @@ class Address
 
         // Ensure that the Address can be populated
         if (!is_array($data)) {
-            trigger_error("Unable to construct address with a " . get_class($name));
+            trigger_error("Unable to construct address with a " . get_class($this));
         }
 
         if(count($data) > 0) {
@@ -73,6 +89,11 @@ class Address
 
     function __set($name, $value)
     {
+        if($name == "address_type_id") {
+            $this->_setAddressTypeId($value);
+            return;
+        }
+
         // Allow anything to set the postal code
         if($name == 'postal_code') {
             $this->$name = $value;
@@ -110,5 +131,15 @@ class Address
         $output .= "<br>" . $this->country_name;
 
         return $output;
+    }
+
+    static public function isValidAddressTypeId($address_type_id) {
+        return array_key_exists($address_type_id, self::$valid_address_types);
+    }
+
+    protected function _setAddressTypeId($address_type_id) {
+        if(self::isValidAddressTypeId($address_type_id)) {
+            $this->address_type_id = $address_type_id;
+        }
     }
 }
