@@ -8,7 +8,7 @@ class Database
     // Store single instance
     private static $_instance;
 
-    /*
+    /**
      * Get an instance of the Database
      * @return Database
      */

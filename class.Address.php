@@ -1,8 +1,8 @@
 <?php
-/*
+/**
  * Physical Address
  */
-class Address
+abstract class Address implements Model
 {
     const ADDRESS_TYPE_RESIDENCE = 1;
     const ADDRESS_TYPE_BUSINESS = 2;
@@ -39,12 +39,19 @@ class Address
     protected $_time_created;
     protected $_time_updated;
 
-    /*
+    function __clone()
+    {
+        $this->_time_created = time();
+        $this->_time_updated = NULL;
+    }
+
+    /**
      * Constructor
      * @param array $data optional array of property names and values
      */
     function __construct($data = array())
     {
+        $this->_init();
         $this->_time_created = time();
 
         // Ensure that the Address can be populated
@@ -57,7 +64,9 @@ class Address
                 // Special case for protected properties
                 if(in_array($name, array(
                     'time_created',
-                    'time_updated'
+                    'time_updated'.
+                    'address_id',
+                    'address_type_id'
                 ))) {
                  $name = '_' . $name;
                 }
@@ -66,7 +75,7 @@ class Address
         }
     }
 
-    /*
+    /**
      * @param string $name
      * @return mixed
      */
@@ -89,11 +98,6 @@ class Address
 
     function __set($name, $value)
     {
-        if($name == "address_type_id") {
-            $this->_setAddressTypeId($value);
-            return;
-        }
-
         // Allow anything to set the postal code
         if($name == 'postal_code') {
             $this->$name = $value;
@@ -106,9 +110,13 @@ class Address
         return $this->display();
     }
 
-    /*
+    /**
+     * Force extended classes implement init method
+     */
+    abstract protected function _init();
+
+    /**
      * Guess the postal code given the subdivision and city name
-     * @TODO Replace with a database lookup
      * @return string
      */
     protected function _postal_code_guess() {
@@ -156,5 +164,36 @@ class Address
         if(self::isValidAddressTypeId($address_type_id)) {
             $this->address_type_id = $address_type_id;
         }
+    }
+
+    /**
+     * Load an address
+     * @param $address_id
+     * @return mixed
+     */
+    final public static function load($address_id)
+    {
+        $db = Database::getInstance();
+        $mysqli = $db->getConnection();
+
+        $sql_query = "SELECT address.* FROM address WHERE address_id = '" . (int) $address_id . "'";
+        $result = $mysqli->query($sql_query);
+        if($row = $result->fetch_assoc()) {
+            return self::getInstance($row["address_type_id"], $row);
+        }
+        throw new Exception("Address not found");
+    }
+
+    final public static function getInstance($address_type_id, $data=array()) {
+        $class_name = "Address" . self::$valid_address_types[$address_type_id];
+        return new $class_name($data);
+    }
+
+    /**
+     * Save an address
+     */
+    final public function save()
+    {
+        // TODO: Implement save() method.
     }
 }
