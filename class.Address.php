@@ -10,6 +10,7 @@ abstract class Address implements Model
 
     const ADDRESS_ERROR_NOT_FOUND = 1000;
     const ADDRESS_ERROR_UNKNOWN_SUBCLASS = 1001;
+    const ADDRESS_ERROR_NO_DISPLAY_STRATEGY = 1002;
 
     static public $valid_address_types = array(
         Address::ADDRESS_TYPE_RESIDENCE => "Residence",
@@ -41,6 +42,14 @@ abstract class Address implements Model
 
     protected $_time_created;
     protected $_time_updated;
+
+    private static $_display_strategies = array(
+        "AddressDisplayNoCountry",
+        "AddressDisplayFull",
+        "AddressDisplayPark",
+    );
+
+    private $_display_strategy;
 
     function __clone()
     {
@@ -142,7 +151,7 @@ abstract class Address implements Model
     }
 
     function display() {
-        $output = "";
+        /*$output = "";
 
         $output .= $this->street_address_1;
         if($this->street_address_2) {
@@ -156,7 +165,22 @@ abstract class Address implements Model
         // Country
         $output .= "<br>" . $this->country_name;
 
-        return $output;
+        return $output;*/
+
+        //Lazy initialization
+        if (is_null($this->_display_strategy)) {
+            foreach(self::$_display_strategies as $strategy_class_name) {
+                if ($strategy_class_name::isAvailable($this)) {
+                    $this->_display_strategy = $strategy_class_name;
+                }
+            }
+        }
+        if(!$this->_display_strategy) {
+            throw new ExceptionAddress("No display strategy found!",
+                self::ADDRESS_ERROR_NO_DISPLAY_STRATEGY);
+        }
+        $display_strategy = $this->_display_strategy;
+        return $display_strategy::display($this);
     }
 
     static public function isValidAddressTypeId($address_type_id) {
