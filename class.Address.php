@@ -8,6 +8,8 @@ abstract class Address implements Model
     const ADDRESS_TYPE_BUSINESS = 2;
     const ADDRESS_TYPE_PARK = 3;
 
+    const ADDRESS_ERROR_NOT_FOUND = 1000;
+
     static public $valid_address_types = array(
         Address::ADDRESS_TYPE_RESIDENCE => "Residence",
         Address::ADDRESS_TYPE_BUSINESS => "Business",
@@ -170,6 +172,7 @@ abstract class Address implements Model
      * Load an address
      * @param $address_id
      * @return mixed
+     * @throws ExceptionAddress
      */
     final public static function load($address_id)
     {
@@ -181,7 +184,7 @@ abstract class Address implements Model
         if($row = $result->fetch_assoc()) {
             return self::getInstance($row["address_type_id"], $row);
         }
-        throw new Exception("Address not found");
+        throw new ExceptionAddress("Address not found", self::ADDRESS_ERROR_NOT_FOUND);
     }
 
     final public static function getInstance($address_type_id, $data=array()) {

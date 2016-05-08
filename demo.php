@@ -38,8 +38,9 @@ echo "<br><br>" . $Address3;
 try{
     $address_db = Address::load(0);
     echo $address_db;
-} catch (Exception $e) {
-    echo $e->getMessage();
+} catch (ExceptionAddress $e) {
+    //echo $e->getMessage();
+    echo $e;
 }
 
 //var_dump($address_db);
