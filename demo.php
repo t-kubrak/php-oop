@@ -7,7 +7,7 @@ function __autoload($class_name){
     include "class." . $class_name . ".php";
 }
 
-$Address = new AddressBusiness();
+$Address = Address::getInstance(Address::ADDRESS_TYPE_RESIDENCE);
 
 $Address->country_name = "Canada";
 $Address->city_name = "Ottawa";

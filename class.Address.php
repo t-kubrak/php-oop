@@ -9,6 +9,7 @@ abstract class Address implements Model
     const ADDRESS_TYPE_PARK = 3;
 
     const ADDRESS_ERROR_NOT_FOUND = 1000;
+    const ADDRESS_ERROR_UNKNOWN_SUBCLASS = 1001;
 
     static public $valid_address_types = array(
         Address::ADDRESS_TYPE_RESIDENCE => "Residence",
@@ -189,6 +190,10 @@ abstract class Address implements Model
 
     final public static function getInstance($address_type_id, $data=array()) {
         $class_name = "Address" . self::$valid_address_types[$address_type_id];
+        if(!class_exists($class_name)) {
+            throw new ExceptionAddress("Address subclass not found, cannot create.",
+                self::ADDRESS_ERROR_UNKNOWN_SUBCLASS);
+        }
         return new $class_name($data);
     }
 
